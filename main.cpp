@@ -92,32 +92,26 @@ void inputSyntax(int n){
     }
 }
 
-//input распарсивает наши правила по delim, то есть в string_rules мы храним по одному правилу. 
-// Если там встречается какой-то корявый синтаксис [Delim], то мы это правило просто не добавляем
-// добавить в парсинге при проверке arrow, чтобы в каждом правиле не было больше 1 arrow. Иначе удаляем это правило
+//input распарсивает наши правила по delim, то есть в string_rules мы храним по одному правилу. Если там встречается какой-то корявый синтаксис [Delim], то мы это правило просто не добавляем
+//добавить в парсинге при проверке arrow, чтобы в каждом правиле не было больше 1 arrow. Иначе удаляем это правило
 int input_file(int n){
     ifstream in("tests\\test" + to_string(n) + "\\input.txt");
     string str;
-    while (getline(in,str)) {
+    while (getline(in,str)){
         if (str.size()) {
             str=Clear_str(str);
-            if (parametrs["Delim"]=="\n"){
-                // bool ok = check_rule(str);
-                // if (ok) {
-                    if (str.size()) string_rules.push_back(str);
-                //}
-                
+            if (parametrs["Delim"] == "\n"){
+                if (str.size()) string_rules.push_back(str);
             }
             else{
-                while (str.size()) {
-                    int k = str.find(parametrs["Delim"]);
-                    if (k != -1){
-                        string dopstr = str.substr(0,k);
-                        if (dopstr.size()) string_rules.push_back(dopstr);
-                        str=str.erase(0,k+1);
-                    }
-                    else break;
+                while (str.size()){
+                int k = str.find(parametrs["Delim"]);
+                if (k != -1){
+                    string dopstr = str.substr(0,k);
+                    if (dopstr.size()) string_rules.push_back(dopstr);
+                    str = str.erase(0,k+1);
                 }
+                else break;
             }
             
         }
@@ -145,6 +139,7 @@ int main() {
         cout << *it << " ";
     }
     cout << endl;
+
     // парсим грамматику
     // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), то говорим об ошибке 
     // bool err = inputGrammar(n);
@@ -166,6 +161,7 @@ int main() {
     // for (int i = 0; i < string_rules.size(); i++){
     //     cout << string_rules[i] << "\n";
     // }
+
 
     // TO DO
     // конвертируем в КС
