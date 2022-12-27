@@ -62,17 +62,18 @@ int main() {
     cout << "Enter test number" << endl;
     cin >> n;
     inputSyntax(n);
+    
+    cout << ">> PARAMETRS <<" << endl;
+    for (auto mypair: parametrs) {  
+        cout << mypair.first << " = " << mypair.second << endl;
+    } 
+    // парсим грамматику
     // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), то говорим об ошибке 
     // bool err = inputGrammar(n);
     // if (!err) {
     //     cout << "ERROR - Grammar is incorrect";
     //     return 0;
     // }
-    cout << ">> PARAMETRS <<" << endl;
-    for (auto mypair: parametrs) {  
-        cout << mypair.first << " = " << mypair.second << endl;
-    }  
-    // парсим грамматику
 
     // конвертируем в КС
 
