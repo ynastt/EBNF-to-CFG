@@ -25,6 +25,14 @@ map <string, string> parametrs {
 };
 
 bool err = false;
+string Clear_str(string str){
+    string v;
+    for(char c:str) if (c != ' ') v += c;
+    return v;
+}
+
+//Чисто пока нет парсера
+vector <string> string_rules;
 
 // string removeSpaces(string input) {
 //   input.erase(std::remove(input.begin(),input.end(),' '),input.end());
@@ -57,6 +65,35 @@ void inputSyntax(int n){
     }
 }
 
+
+int input_file(int n){
+    ifstream in("tests\\test" + to_string(n) + "\\input.txt");
+    string str;
+    while (getline(in,str)){
+        if (str.size()) {
+            str=Clear_str(str);
+            if (parametrs["Delim"]=="\n"){
+                if (str.size()) string_rules.push_back(str);
+            }
+            else{
+                while (str.size()){
+                int k=str.find(parametrs["Delim"]);
+                if (k!=-1){
+                    string dopstr=str.substr(0,k);
+                    if (dopstr.size()) string_rules.push_back(dopstr);
+                    str=str.erase(0,k+1);
+                }
+                else break;
+            }
+            }
+            
+        }
+
+    }
+    if (!string_rules.size()) return 1;
+    else return 0;
+}
+
 int main() {
     int n;
     cout << "Enter test number" << endl;
@@ -80,6 +117,17 @@ int main() {
     // добавляем параметры для КС (опционально)
 
     // выводим КС
+    
+    cout<<"Please,input number of test for grammar\n";
+    cin>>n;
+    int error=input_file(n);
+    if (error){
+        cout<<"Grammar is empty.";
+        return 0;
+    }
+    for (int i=0;i<string_rules.size();i++){
+        cout<<string_rules[i]<<"\n";
+    }
 
     return 0;
 }
