@@ -71,6 +71,7 @@ string Clear_str(string str){
     return v;
 }
 
+//input распарсивает наши правила по delim, то есть в string_rules мы храним по одному правилу. Если там встречается какой-то корявый синтаксис [Delim], то мы это правило просто не добавляем
 int input_file(int n){
     ifstream in("tests\\test" + to_string(n) + "\\input.txt");
     string str;
