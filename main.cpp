@@ -65,6 +65,11 @@ void inputSyntax(int n){
     }
 }
 
+string Clear_str(string str){
+    string v;
+    for(char c:str) if (c != ' ') v += c;
+    return v;
+}
 
 int input_file(int n){
     ifstream in("tests\\test" + to_string(n) + "\\input.txt");
