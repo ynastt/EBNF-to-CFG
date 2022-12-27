@@ -102,7 +102,12 @@
 [Grammar] -> [Rules]
 [Rules] -> [Rule] | [Rule]['\n'][Rules]
 [Rule] -> [Nterm] -> [RightPart]  
-[RightPart] -> 
+[RightPart] -> [Term][RighPart]|[NTerm][RightPart]|[Empty]
+[Term] -> [TermStart] [TermStr] [TermEnd]  
+[Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
+[NtermStr] -> [A-Z][NtermStr] | [A-Z]
+[TermStr] -> [a-z]
+
  ```  
 если будем делать доп, то добавляем параметры и говорим, что параметры выходной грамматики можно задать в текстовом файле, например CFGsyntax.txt 
 
