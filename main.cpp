@@ -3,7 +3,8 @@
 #include <string>
 #include <map>
 #include <vector>
-//#include <algorithm>
+#include <set>
+#include <algorithm>
 
 using namespace std;
 
@@ -20,24 +21,53 @@ map <string, string> parametrs {
     {"Operation{}Start", "{"},
     {"Operation{}End", "}"},
     {"Operation()Start", "("},
-    {"Operation()End", ")"},
-    {"OperationConcat", ","}
+    {"Operation()End", ")"}
 };
 
+map <string, string> parametrsCFG {
+    {"Delim", "\n"},
+    {"Arrow", "->"},
+    {"Empty", ""},
+    {"TermStart", ""},
+    {"TermEnd", ""},
+    {"NtermStart", "'"},
+    {"NtermEnd", "'"}
+};
+
+// множество используемых обозначений операций
+// использовать для проверки правильности грамматики 
+set <string> grammarSymbols;
+
 bool err = false;
+
+// структура для описания правила переписывания нетерминала
+struct Tree {
+    char symbol;
+    int num; // [] - 0; {} - 1; () - 2; | - 3; , - 4; a-z -5; A-Z -6;
+    struct Tree* right;
+    struct Tree* left;
+};
+
+// каждое правило имеет представление нетерминал left -> правило переписывания в виде дерева right
+struct Rule {
+    string left;
+    struct Tree* right;
+};
+
+// Грамматика хранится как вектор правил
+// это позволит сохранить последовательность правил введенной грамматики и вывести КС грамматику аналогично.
+// стартовый нетерминал грамматики всегда S (вот так условились)
+// соотвественно vector[0] - первое правило грамматики, правило переписывания нетерминла S
+vector<Rule> Grammar;
+
 string Clear_str(string str){
     string v;
-    for(char c:str) if (c != ' ') v += c;
+    for(char c : str) if (c != ' ') v += c;
     return v;
 }
 
 //Чисто пока нет парсера
-vector <string> string_rules;
-
-// string removeSpaces(string input) {
-//   input.erase(std::remove(input.begin(),input.end(),' '),input.end());
-//   return input;
-// }
+// vector <string> string_rules;
 
 void inputSyntax(int n){
     string testName = "tests\\test" + to_string(n) + "\\syntax.txt";
@@ -65,33 +95,54 @@ void inputSyntax(int n){
     }
 }
 
-string Clear_str(string str){
-    string v;
-    for(char c:str) if (c != ' ') v += c;
-    return v;
+void inputCFGsyntax(int n){
+    string testName = "tests\\test" + to_string(n) + "\\CFGsyntax.txt";
+    cout << testName << endl;
+    ifstream file(testName);
+    if (file.is_open()) {
+        string str;
+        while (getline(file,str)) {
+            if (str.size()) {
+                int pos = str.find("=");
+                for(auto mypair: parametrsCFG) {
+                    string key = mypair.first;
+                    if (str.substr(0, pos) == key) {
+                        if (str.substr(pos+2) != "") {
+                            parametrsCFG[key] = str.substr(pos+2);
+                            // cout << key << " - " << parametrsCFG[key] << endl;
+                        }
+                    }
+                }
+            }
+        }
+        file.close();
+    } else {
+        cout << "file 'syntax.txt' does not exist. All parametrs are default" << endl;
+    }
 }
 
-//input распарсивает наши правила по delim, то есть в string_rules мы храним по одному правилу. Если там встречается какой-то корявый синтаксис [Delim], то мы это правило просто не добавляем
-//добавить в парсинге при проверке arrow, чтобы в каждом правиле не было больше 1 arrow. Иначе удаляем это правило
+/*
+//input распарсивает наши правила по delim, то есть в string_rules мы храним по одному правилу. 
+// Если там встречается какой-то корявый синтаксис [Delim], то мы это правило просто не добавляем
+// добавить в парсинге при проверке arrow, чтобы в каждом правиле не было больше 1 arrow. Иначе удаляем это правило
 int input_file(int n){
     ifstream in("tests\\test" + to_string(n) + "\\input.txt");
     string str;
     while (getline(in,str)){
         if (str.size()) {
             str=Clear_str(str);
-            if (parametrs["Delim"]=="\n"){
+            if (parametrs["Delim"] == "\n"){
                 if (str.size()) string_rules.push_back(str);
             }
             else{
                 while (str.size()){
-                int k=str.find(parametrs["Delim"]);
-                if (k!=-1){
-                    string dopstr=str.substr(0,k);
+                int k = str.find(parametrs["Delim"]);
+                if (k != -1){
+                    string dopstr = str.substr(0,k);
                     if (dopstr.size()) string_rules.push_back(dopstr);
-                    str=str.erase(0,k+1);
+                    str = str.erase(0,k+1);
                 }
                 else break;
-            }
             }
             
         }
@@ -100,41 +151,103 @@ int input_file(int n){
     if (!string_rules.size()) return 1;
     else return 0;
 }
+*/
+
+// пока в процессе
+int inputGrammar(int n) {
+    bool errors = false;
+    ifstream in("tests\\test" + to_string(n) + "\\input.txt");
+    string str;
+    while (getline(in,str)) {
+        if (str.size()) {
+            str=Clear_str(str);
+            // я предлагаю проверять каждую строку без пробелов на корректность значков операций
+            // т.к. если хотя бы в одной строке в грамматике ошибка, то ахтунг
+            // bool ok = check_rule(str);
+            // if (ok) {
+                if (parametrs["Delim"]=="\n") {
+                    if (str.size()) {
+                        //string_rules.push_back(str);
+                    }    
+                }
+                else {
+                    while (str.size()) {
+                        int k = str.find(parametrs["Delim"]);
+                        if (k != -1){
+                            string dopstr = str.substr(0,k);
+                            if (dopstr.size()) //string_rules.push_back(dopstr);
+                            str=str.erase(0,k+1);
+                        }
+                        else break;
+                    }
+                }
+            // } else {
+            //      errors = true;
+            // }
+        }
+
+    }
+    if (Grammar.size() == 0) return (true, errors);
+    else return (false, errors);
+}
 
 int main() {
     int n;
     cout << "Enter test number" << endl;
     cin >> n;
     inputSyntax(n);
-    
+    inputCFGsyntax(n);
+
     cout << ">> PARAMETRS <<" << endl;
     for (auto mypair: parametrs) {  
         cout << mypair.first << " = " << mypair.second << endl;
+        grammarSymbols.insert(mypair.second);
     } 
+
+    // добавляем параметры для КС 
+    cout << ">> CFG PARAMETRS <<" << endl;
+    for (auto mypair: parametrsCFG) {  
+        cout << mypair.first << " = " << mypair.second << endl;
+        
+    } 
+
+    cout << "grammarSymbols" << endl;
+    set <string> :: iterator it = grammarSymbols.begin();
+    for (int i = 1; it != grammarSymbols.end(); i++, it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+
     // парсим грамматику
-    // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), то говорим об ошибке 
-    // bool err = inputGrammar(n);
-    // if (!err) {
-    //     cout << "ERROR - Grammar is incorrect";
-    //     return 0;
+    // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), 
+    // то говорим об ошибке err
+    bool empty;
+    empty , err = inputGrammar(n);
+    if (err) {   
+        cout << "\nERROR - Grammar is incorrect";
+        exit(0);
+    } else {
+        if (empty) {
+            cout << "\nERROR - Grammar is empty";
+            exit(0);
+        } else {
+            cout << "\nGrammar is fine! " << endl;
+        }
+    }
+
+    cout << ">> PARSED GRAMMAR <<" << endl;
+    
+
+    
+
+    // for (int i = 0; i < string_rules.size(); i++){
+    //     cout << string_rules[i] << "\n";
     // }
 
+
+    // TO DO
     // конвертируем в КС
-
-    // добавляем параметры для КС (опционально)
-
-    // выводим КС
     
-    cout<<"Please,input number of test for grammar\n";
-    cin>>n;
-    int error=input_file(n);
-    if (error){
-        cout<<"Grammar is empty.";
-        return 0;
-    }
-    for (int i=0;i<string_rules.size();i++){
-        cout<<string_rules[i]<<"\n";
-    }
-
+    // выводим КС
     return 0;
 }
