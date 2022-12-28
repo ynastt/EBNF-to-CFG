@@ -40,18 +40,14 @@ set <string> grammarSymbols;
 
 bool err = false;
 
-// структура для описания правила переписывания нетерминала
-struct Tree {
-    char symbol;
-    int num; // [] - 0; {} - 1; () - 2; | - 3; , - 4; a-z -5; A-Z -6;
-    struct Tree* right;
-    struct Tree* left;
+struct Elem {
+    string val;
+    int num;    // [] - 0; {} - 1; () - 2; | - 3; , - 4; a-z -5; A-Z -6;
 };
 
-// каждое правило имеет представление нетерминал left -> правило переписывания в виде дерева right
 struct Rule {
     string left;
-    struct Tree* right;
+    vector<Elem> right;
 };
 
 // Грамматика хранится как вектор правил
