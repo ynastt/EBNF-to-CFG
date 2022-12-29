@@ -649,10 +649,5 @@ int main() {
     ConvertertoCFG();
     cout<<"\n.....CFG.....\n";
     PrintAnswer(n);
-
-    // TO DO
-    // конвертируем в КС (папраметры Кс грамматики считываются выше)
-    
-    // выводим КС
     return 0;
 }
