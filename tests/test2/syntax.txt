@@ -1,4 +1,4 @@
 Delim= 
-Arrow= :=
+Arrow= =
 NtermStart= <
 NtermEnd= >

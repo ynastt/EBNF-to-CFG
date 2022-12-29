@@ -5,23 +5,24 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <cctype>
 
 using namespace std;
+const string EMPTY = "#";
 
 map <string, string> parametrs {
     {"Delim", "\n"},
     {"Arrow", "->"},
-    {"Empty", ""},
     {"TermStart", ""},
     {"TermEnd", ""},
     {"NtermStart", "'"},
-    {"NtermEnd", "'"},
-    {"Operation[]Start", "["},
-    {"Operation[]End", "]"},
-    {"Operation{}Start", "{"},
-    {"Operation{}End", "}"},
-    {"Operation()Start", "("},
-    {"Operation()End", ")"}
+    {"NtermEnd", "'"}
+    // {"Operation[]Start", "["},
+    // {"Operation[]End", "]"},
+    // {"Operation{}Start", "{"},
+    // {"Operation{}End", "}"},
+    // {"Operation()Start", "("},
+    // {"Operation()End", ")"}
 };
 
 map <string, string> parametrsCFG {
@@ -39,11 +40,12 @@ map <string, string> parametrsCFG {
 set <string> grammarSymbols;
 
 bool err = false;
+bool errSyntax = false;
 
 // структура для описания правила переписывания нетерминала
 struct Tree {
-    char symbol;
-    int num; // [] - 0; {} - 1; () - 2; | - 3; , - 4; a-z -5; A-Z -6;
+    string str;
+    int num; // [] - 0; {} - 1; () - 2; | - 3; concat - 4; a-z -5; A-Z -6, empty - 7;
     struct Tree* right;
     struct Tree* left;
 };
@@ -58,16 +60,13 @@ struct Rule {
 // это позволит сохранить последовательность правил введенной грамматики и вывести КС грамматику аналогично.
 // стартовый нетерминал грамматики всегда S (вот так условились)
 // соотвественно vector[0] - первое правило грамматики, правило переписывания нетерминла S
-vector<Rule> Grammar;
+vector<Rule*> Grammar;
 
 string Clear_str(string str){
     string v;
     for(char c : str) if (c != ' ') v += c;
     return v;
 }
-
-//Чисто пока нет парсера
-// vector <string> string_rules;
 
 void inputSyntax(int n){
     string testName = "tests\\test" + to_string(n) + "\\syntax.txt";
@@ -121,74 +120,300 @@ void inputCFGsyntax(int n){
     }
 }
 
-/*
-//input распарсивает наши правила по delim, то есть в string_rules мы храним по одному правилу. 
-// Если там встречается какой-то корявый синтаксис [Delim], то мы это правило просто не добавляем
-// добавить в парсинге при проверке arrow, чтобы в каждом правиле не было больше 1 arrow. Иначе удаляем это правило
-int input_file(int n){
-    ifstream in("tests\\test" + to_string(n) + "\\input.txt");
-    string str;
-    while (getline(in,str)){
-        if (str.size()) {
-            str=Clear_str(str);
-            if (parametrs["Delim"] == "\n"){
-                if (str.size()) string_rules.push_back(str);
-            }
-            else{
-                while (str.size()){
-                int k = str.find(parametrs["Delim"]);
-                if (k != -1){
-                    string dopstr = str.substr(0,k);
-                    if (dopstr.size()) string_rules.push_back(dopstr);
-                    str = str.erase(0,k+1);
-                }
-                else break;
-            }
-            
-        }
-
-    }
-    if (!string_rules.size()) return 1;
-    else return 0;
+// функция находит индекс первой внешней альтернативы
+// если -1 - правило не имеет вид альтернативы, значит это конкатенация чего-то
+// если не -1, то дан индекс первой альтенативы 
+// (типа правило имеет вид `S -> что-то | что-то ...` ), возможно есть еще альтернативы
+int getFirstAltIndex (string str) {
+    int outBracketsCount1 = 0;
+    int outBracketsCount2 = 0;
+    int outBracketsCount3 = 0;
+	for (int i =0; i < str.size(); i++) {
+		if (outBracketsCount1 == outBracketsCount2 == outBracketsCount3 == 0 && 
+		str[i] == '|') {
+			return i;
+		} else if (str[i] == '(') {
+			outBracketsCount1++;
+		} else if (str[i] == ')') {
+			outBracketsCount1--;
+		} else if (str[i] == '{') {
+			outBracketsCount2++;
+		} else if (str[i] == '}') {
+			outBracketsCount2--;
+		} else if (str[i] == '[') {
+			outBracketsCount3++;
+		} else if (str[i] == ']') {
+			outBracketsCount3--;
+		}
+	}
+	return -1;
 }
-*/
 
-// пока в процессе
-int inputGrammar(int n) {
-    bool errors = false;
+struct Tree* parseAlt(string str);
+
+struct Tree* parseConcat(string str) {
+    cout << "CONC: " << str << endl;
+    struct Tree* tr = new Tree;
+    if (str.length() == 1) {
+        if (islower(str[0])) {
+            cout << "LOWWER" << endl;
+            tr->str = str;
+            tr->num = 5;
+            tr->left = NULL;
+            tr->right = NULL;
+            return tr;
+        }
+        if (isupper(str[0])) {
+            cout << "UPPER" << endl;
+            tr->str = str;
+            tr->num = 6;
+            tr->left = NULL;
+            tr->right = NULL;
+            return tr;
+        }
+        if (str == EMPTY) {
+            tr->str = str;
+            tr->num = 7;
+            tr->left = NULL;
+            tr->right = NULL;
+            return tr;
+        }
+    }
+    if (str.length() == 3) {
+        if (str[0] == '[' && str[2] == ']') {
+            string s = {str[1]};
+            tr->str = str;
+            tr->num = 0;
+            tr->left = parseConcat(s);;
+            tr->right = NULL;
+            return tr;
+        }
+        if (str[0] == '{' && str[2] == '}') {
+            string s = {str[1]};
+            tr->str = str;
+            tr->num = 1;
+            tr->left = parseConcat(s);
+            tr->right = NULL;
+            return tr;
+        }
+        if (str[0] == '(' && str[2] == ')') {   // такого случая наверное не будет в норм грамматике пользователя
+            string s = {str[1]};
+            tr->str = str;
+            tr->num = 2;
+            tr->left = parseConcat(s);
+            tr->right = NULL;
+            return tr;
+        }
+    }    
+    // парсим
+    if (islower(str[0]) || isupper(str[0])) {
+        string s = {str[0]};
+        tr->str = str;
+        tr->num = 4;
+        tr->left = parseConcat(s);
+        tr->right = parseConcat(str.substr(1));
+        return tr;
+    }
+    if (str[0] == '[') {
+        int pos = str.rfind(']');
+        if (pos != str.size() - 1) {
+            tr->str = str;
+            tr->num = 4;
+            tr->left = parseAlt(str.substr(0, pos + 1));
+            tr->right = parseConcat(str.substr(pos + 1));
+            return tr;
+        } else if (pos == str.size() - 1){
+            cout << "HERE []" << endl;
+            tr->str = str;
+            tr->num = 0;
+            tr->left = parseAlt(str.substr(1,pos - 1));
+            tr->right = NULL;
+            return tr;
+        }    
+    }
+    if (str[0] == '{') {
+        // не просто первую закрывающую, а последнюю
+        int pos = str.rfind('}');
+        if (pos < str.size() - 1) {
+            cout << "HERE 1 {}" << endl;
+            tr->str = str;
+            tr->num = 4;
+            tr->left = parseAlt(str.substr(0, pos + 1));
+            tr->right = parseConcat(str.substr(pos + 1));
+            return tr;
+        } else if (pos == str.size() - 1){
+            cout << "HERE {}" << endl;
+            tr->str = str;
+            tr->num = 1;
+            tr->left = parseAlt(str.substr(1, pos - 1));
+            tr->right = NULL;
+            return tr;
+        }    
+    }
+    if (str[0] == '(') {
+        int pos = str.rfind(')');
+        if (pos != str.size() - 1) {
+            tr->str = str;
+            tr->num = 4;
+            tr->left = parseAlt(str.substr(0, pos + 1));
+            tr->right = parseConcat(str.substr(pos + 1));
+            return tr;
+        } else {
+            tr->str = str;
+            tr->num = 2;
+            tr->left = parseAlt(str.substr(1,pos - 1));
+            tr->right = NULL;
+            return tr;
+        }    
+    }
+    return tr;
+}
+
+struct Tree* parseAlt(string str) {
+    cout << "ALT: " << str << endl;
+    struct Tree* t = new Tree;
+    int alt = getFirstAltIndex(str);
+    if (alt == -1) {
+        cout << "debug - concat root" << endl;
+        t = parseConcat(str);  
+	} else {
+        t->str = str;
+        t->num = 3;
+        t->left = parseAlt(str.substr(0, alt));
+        t->right = parseAlt(str.substr(alt+1));	
+	}
+    return t;
+}
+
+// идея в том, чтобы убрать обрамления терминалов и нетерминалов,
+// потому что мы можем разлечить a-z и A-Z по юникоду
+string removeNtermTermBrackets(string str) {
+    int pos = 0;
+    string sub = parametrs["NtermStart"];
+    if (sub != "") {
+        while((pos = str.find(sub, pos)) != string::npos) {
+            str.replace(pos, sub.length(), "");
+        }
+    }
+    pos = 0;
+    sub = parametrs["NtermEnd"];
+    if (sub != "") {
+        while((pos = str.find(sub, pos)) != string::npos) {
+            str.replace(pos, sub.length(), "");
+        }
+    }
+    pos = 0;
+    sub = parametrs["TermStart"];
+    if (sub != "") {
+        while((pos = str.find(sub, pos)) != string::npos) {
+            str.replace(pos, sub.length(), "");
+        }
+    }
+    pos = 0;
+    sub = parametrs["TermEnd"];
+    if (sub != "") {
+        while((pos = str.find(sub, pos)) != string::npos) {
+            str.replace(pos, sub.length(), "");
+        }
+    }
+    return str;
+}
+
+Rule* parseRule(string str) {
+    Rule* rule = new Rule;
+    string param = parametrs["NtermStart"];
+    int len = param.length();
+    int i = 0;
+    if (str.substr(0, len) == param) {
+        rule->left = str.substr(len, 1);
+        i = len + 1;    // теперь i указывает на следующий символ после нетерминала 
+    } else {
+        errSyntax = true;
+        cout << "\nERROR - Grammar is incorrect";
+        exit(0);
+    }
+    param = parametrs["NtermEnd"];
+    len = param.length();
+    if (str.substr(i, len) == param) {
+        i += len; // теперь i указывает на следующий символ после NtermEnd
+    } else {
+        errSyntax = true;
+        cout << "\nERROR - Grammar is incorrect";
+        exit(0);
+    }
+    param = parametrs["Arrow"];
+    len = param.length();
+    if (str.substr(i, len) == param) {
+        i += len; // теперь i указывает на следующий символ после Arrow
+    } else {
+        errSyntax = true;
+        cout << "\nERROR - Grammar is incorrect";
+        exit(0);
+    }
+    // здесь начинаем парсить правую часть правила
+    struct Tree * rightPart = new struct Tree;
+    string str_upd = removeNtermTermBrackets(str.substr(i));
+    rightPart = parseAlt(str_upd);
+    rule->right = rightPart;
+    return rule;
+}
+
+bool inputGrammar(int n) {
     ifstream in("tests\\test" + to_string(n) + "\\input.txt");
     string str;
     while (getline(in,str)) {
         if (str.size()) {
             str=Clear_str(str);
-            // я предлагаю проверять каждую строку без пробелов на корректность значков операций
-            // т.к. если хотя бы в одной строке в грамматике ошибка, то ахтунг
-            // bool ok = check_rule(str);
-            // if (ok) {
-                if (parametrs["Delim"]=="\n") {
-                    if (str.size()) {
-                        //string_rules.push_back(str);
-                    }    
-                }
-                else {
-                    while (str.size()) {
-                        int k = str.find(parametrs["Delim"]);
-                        if (k != -1){
-                            string dopstr = str.substr(0,k);
-                            if (dopstr.size()) //string_rules.push_back(dopstr);
-                            str=str.erase(0,k+1);
+            if (parametrs["Delim"]=="\n") {
+                if (str.size()) {
+                    Rule* r = parseRule(str);
+                    Grammar.push_back(r);
+                }    
+            }
+            else {
+                while (str.size()) {
+                    int k = str.find(parametrs["Delim"]);
+                    if (k != -1){
+                        string dopstr = str.substr(0,k);
+                        if (dopstr.size())  {
+                            Rule* r = parseRule(dopstr);
+                            Grammar.push_back(r);
                         }
-                        else break;
+                        str=str.erase(0,k+1);
                     }
+                    else break;
                 }
-            // } else {
-            //      errors = true;
-            // }
+            }
         }
-
     }
-    if (Grammar.size() == 0) return (true, errors);
-    else return (false, errors);
+    if (Grammar.size() == 0) return (true);
+    else return (false);
+}
+
+void printTree(struct Tree* t) {    
+    cout << t -> str << endl;;
+    if (t->left != NULL) {
+        printTree(t->left); 
+    } 
+    if (t->right != NULL) {
+        printTree(t->right);
+    } 
+    
+} 
+
+void printGrammar() {
+    int i = 0;
+    if (Grammar.size() == 0) {
+        cout << "CHECK IF INPUT GRAMMAR IS CORRECT, HAS CORRECT PARAMETRS!\nRESTART THE PROGRAM\n";
+        exit(0);
+    }
+    for (auto rule : Grammar) {
+        cout << "== RULE " << i++ << " ==" << endl;
+        cout << "NTERM: " << rule->left << endl;
+        cout << "RIGHT PART TREE:" << endl;
+        printTree(rule->right);
+    }
+    
 }
 
 int main() {
@@ -196,57 +421,37 @@ int main() {
     cout << "Enter test number" << endl;
     cin >> n;
     inputSyntax(n);
-    inputCFGsyntax(n);
 
     cout << ">> PARAMETRS <<" << endl;
     for (auto mypair: parametrs) {  
         cout << mypair.first << " = " << mypair.second << endl;
-        grammarSymbols.insert(mypair.second);
     } 
 
     // добавляем параметры для КС 
-    cout << ">> CFG PARAMETRS <<" << endl;
-    for (auto mypair: parametrsCFG) {  
-        cout << mypair.first << " = " << mypair.second << endl;
-        
-    } 
-
-    cout << "grammarSymbols" << endl;
-    set <string> :: iterator it = grammarSymbols.begin();
-    for (int i = 1; it != grammarSymbols.end(); i++, it++) {
-        cout << *it << " ";
-    }
-    cout << endl;
+    //inputCFGsyntax(n);
+    // cout << ">> CFG PARAMETRS <<" << endl;
+    // for (auto mypair: parametrsCFG) {  
+    //     cout << mypair.first << " = " << mypair.second << endl;    
+    // } 
 
     // парсим грамматику
     // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), 
     // то говорим об ошибке err
     bool empty;
-    empty , err = inputGrammar(n);
-    if (err) {   
-        cout << "\nERROR - Grammar is incorrect";
+    empty  = inputGrammar(n);
+    if (empty) {
+        cout << "\nERROR - Grammar is empty";
         exit(0);
     } else {
-        if (empty) {
-            cout << "\nERROR - Grammar is empty";
-            exit(0);
-        } else {
-            cout << "\nGrammar is fine! " << endl;
-        }
+        cout << "\nGrammar is fine! " << endl;
     }
 
     cout << ">> PARSED GRAMMAR <<" << endl;
-    
-
-    
-
-    // for (int i = 0; i < string_rules.size(); i++){
-    //     cout << string_rules[i] << "\n";
-    // }
+    printGrammar();
 
 
     // TO DO
-    // конвертируем в КС
+    // конвертируем в КС (папраметры Кс грамматики считываются выше)
     
     // выводим КС
     return 0;
