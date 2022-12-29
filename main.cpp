@@ -32,7 +32,9 @@ map <string, string> parametrsCFG {
     {"TermStart", ""},
     {"TermEnd", ""},
     {"NtermStart", "'"},
-    {"NtermEnd", "'"}
+    {"NtermEnd", "'"},
+    {"Concat",""},
+    {"Alternative","|"}
 };
 
 // множество используемых обозначений операций
@@ -264,7 +266,7 @@ struct Tree* parseConcat(string str) {
 }
 
 struct Tree* parseAlt(string str) {
-    cout << "ALT: " << str << endl;
+    //cout << "ALT: " << str << endl;
     struct Tree* t = new Tree;
     int alt = getFirstAltIndex(str);
     if (alt == -1) {
@@ -384,7 +386,7 @@ bool inputGrammar(int n) {
 }
 
 void printTree(struct Tree* t) {    
-    cout << t -> str << endl;;
+    cout << t -> str <<" "<<t->num<< endl;;
     if (t->left != NULL) {
         printTree(t->left); 
     } 
@@ -408,6 +410,204 @@ void printGrammar() {
     }
     
 }
+
+struct cfg_rule{
+    string leftpart;
+    string rightpart;
+};
+
+vector <cfg_rule> cfg_answer;
+
+vector <cfg_rule> onerule;
+ 
+vector <string> forcheck;
+//Функция для генерации разных нетерминалов
+string GeneratorNewNeterm(){
+    int num=0;
+    string newneterm="A";
+    while (true){
+        int flag=0;
+        for (int i=0;i<forcheck.size();i++){
+            if (forcheck[i].find(to_string(num))!=-1){
+                flag=1;
+                break;
+            }
+        }
+        if (!flag) break;
+        else num++;
+    }
+    return newneterm+to_string(num);
+}
+
+/*
+map <string, string> parametrsCFG {
+    {"Delim", "\n"},
+    {"Arrow", "->"},
+    {"Empty", ""},
+    {"TermStart", ""},
+    {"TermEnd", ""},
+    {"NtermStart", "'"},
+    {"NtermEnd", "'"}
+};
+*/
+// [] - 0; {} - 1; () - 2; | - 3; concat - 4; a-z -5; A-Z -6, empty - 7;
+string ConvertertoCFG_1(string leftpart,struct Tree* p,int flag){
+    string str;
+   if (p!=NULL){
+    if (p->num==4){
+        if ((p->left!=NULL)&&(p->right!=NULL))str=ConvertertoCFG_1(leftpart,p->left,0)+parametrsCFG["Concat"]+ConvertertoCFG_1(leftpart,p->right,0);
+    }
+    else if (p->num==5){
+        str=parametrsCFG["TermStart"]+p->str+parametrsCFG["TermEnd"];
+    }
+    else if (p->num==6){
+        str=parametrsCFG["NtermStart"]+p->str+parametrsCFG["NtermEnd"];
+    }
+    else if (p->num==7){
+        str=parametrsCFG["Empty"];
+    }
+    else if ((p->num==3)&&(!flag)){
+        string newneterm=GeneratorNewNeterm();
+        str=parametrsCFG["NtermStart"]+newneterm+parametrsCFG["NtermEnd"];
+        forcheck.push_back(newneterm);
+        ConvertertoCFG_1(newneterm,p,1);
+        //str=ConvertertoCFG_1(newneterm,p->left)+"|"+ConvertertoCFG_1(newneterm,p->right);
+    }
+    else if ((p->num==3)&&(flag)){
+        if ((p->left!=NULL)&&(p->right!=NULL)) str=ConvertertoCFG_1(leftpart,p->left,0)+parametrsCFG["Alternative"]+ConvertertoCFG_1(leftpart,p->right,0);
+    }
+    else if ((p->num==0)&&(!flag)){
+        string newneterm=GeneratorNewNeterm();
+        str=parametrsCFG["NtermStart"]+newneterm+parametrsCFG["NtermEnd"];
+        forcheck.push_back(newneterm);
+        ConvertertoCFG_1(newneterm,p,1);
+    }
+    else if ((p->num==0)&&(flag)){
+        if ((p->left!=NULL)) str=ConvertertoCFG_1(leftpart,p->left,0)+parametrsCFG["Alternative"]+parametrsCFG["Empty"];
+    }
+    else if ((p->num==1)&&(!flag)){
+        string newneterm=GeneratorNewNeterm();
+        str=parametrsCFG["NtermStart"]+newneterm+parametrsCFG["NtermEnd"];
+        forcheck.push_back(newneterm);
+        ConvertertoCFG_1(newneterm,p,1);
+        //str=ConvertertoCFG_1(newneterm,p->left)+"|"+ConvertertoCFG_1(newneterm,p->right);
+    }
+    else if ((p->num==1)&&(flag)){
+        if ((p->left!=NULL)) str=ConvertertoCFG_1(leftpart,p->left,0)+parametrsCFG["NtermStart"]+leftpart+parametrsCFG["NtermEnd"]+parametrsCFG["Alternative"]+parametrsCFG["Empty"];
+    }
+    else if ((p->num==2)){
+        if ((p->left!=NULL)) str=ConvertertoCFG_1(leftpart,p->left,0);
+    }
+   }
+    if (onerule.empty()){
+        struct cfg_rule dop;
+        dop.leftpart=leftpart;
+        dop.rightpart=str;
+        onerule.push_back(dop);
+    }
+    else{
+        int find=0;
+        for (int i=0;i<onerule.size();i++){
+            if (onerule[i].leftpart==leftpart){
+                onerule[i].rightpart=str;
+                find=1;
+            }
+        }
+        if (!find){
+            struct cfg_rule dop;
+            dop.leftpart=leftpart;
+            dop.rightpart=str;
+            onerule.push_back(dop);
+        }
+    }
+    //cout<<leftpart<<"\n";
+    return str;
+} 
+
+//Чекаем правую сторону, 
+//vector <cfg_rule> cfg_answer;
+
+void NormOrder(){
+    for (int i=0;i<onerule.size();i++){
+        if (onerule[i].leftpart.size()==1){
+            onerule[i].leftpart=parametrsCFG["NtermStart"]+onerule[i].leftpart+parametrsCFG["NtermEnd"];
+            cfg_answer.push_back(onerule[i]);
+            break;
+        }
+    }
+    string neterm="A";
+    int num=0;
+    string str;
+    str=neterm+to_string(num);
+    if (onerule.size()>1){
+        while (true){
+        int flag=0;
+        for (int i=0;i<forcheck.size();i++){
+            if (forcheck[i]==str){
+                flag=1;
+                break;
+            }
+        }
+        if (!flag) break;
+        for (int i=0;i<onerule.size();i++){
+            if (onerule[i].leftpart==str){
+                onerule[i].leftpart=parametrsCFG["NtermStart"]+onerule[i].leftpart+parametrsCFG["NtermEnd"];
+                cfg_answer.push_back(onerule[i]);
+                break;
+            }
+        }
+        num++;
+        str=neterm+to_string(num);
+        }
+    }
+    
+}
+
+void ConvertertoCFG(){
+    for (int i=0;i<Grammar.size();i++){
+        onerule.clear();
+        ConvertertoCFG_1(Grammar[i]->left,Grammar[i]->right,0);
+        if (!onerule.empty()) NormOrder();
+    }
+}
+
+void PrintAnswer(int n){
+    ofstream f1;
+    f1.open("tests\\test" + to_string(n) + "\\output.txt");
+    for (int i=0;i<cfg_answer.size();i++){
+        string str=cfg_answer[i].leftpart+parametrsCFG["Arrow"]+cfg_answer[i].rightpart+parametrsCFG["Delim"];
+        cout<<cfg_answer[i].leftpart<<parametrsCFG["Arrow"]+cfg_answer[i].rightpart<<parametrsCFG["Delim"];
+        f1<<str;
+    }
+}
+
+void inputSyntax_2(int n){
+    string testName = "tests\\test" + to_string(n) + "\\CFGsyntax.txt";
+    cout << testName << endl;
+    ifstream file(testName);
+    if (file.is_open()) {
+        string str;
+        while (getline(file,str)) {
+            if (str.size()) {
+                int pos = str.find("=");
+                for(auto mypair: parametrsCFG) {
+                    string key = mypair.first;
+                    if (str.substr(0, pos) == key) {
+                        if (str.substr(pos+2) != "") {
+                            parametrsCFG[key] = str.substr(pos+2);
+                            // cout << key << " - " << parametrs[key] << endl;
+                        }
+                    }
+                }
+            }
+        }
+        file.close();
+    } else {
+        cout << "\nfile 'CFGsyntax.txt' does not exist. All parametrs are default" << endl;
+    }
+}
+
+
 
 int main() {
     int n;
@@ -438,10 +638,17 @@ int main() {
     } else {
         cout << "\nGrammar is fine! " << endl;
     }
-
+    inputSyntax_2(n);
+    cout << ">> PARAMETRS FOR CFG <<" << endl;
+    for (auto mypair: parametrsCFG) {  
+        cout << mypair.first << " = " << mypair.second << endl;
+    } 
     cout << ">> PARSED GRAMMAR <<" << endl;
     printGrammar();
-
+    cout<<"\n\n";
+    ConvertertoCFG();
+    cout<<"\n.....CFG.....\n";
+    PrintAnswer(n);
 
     // TO DO
     // конвертируем в КС (папраметры Кс грамматики считываются выше)
