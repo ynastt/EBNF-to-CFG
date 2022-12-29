@@ -1,0 +1,6 @@
+Delim= %
+Arrow= :=
+NtermStart= N_
+NtermEnd= _
+TermStart= <
+TermEnd= >
