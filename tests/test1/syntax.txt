@@ -1,3 +1,4 @@
-Delim= \
+Delim= 
 Arrow= :=
-Operation{}End= &
+NtermStart= <
+NtermEnd= >

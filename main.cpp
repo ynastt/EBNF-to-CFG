@@ -70,7 +70,7 @@ struct Rule {
 // это позволит сохранить последовательность правил введенной грамматики и вывести КС грамматику аналогично.
 // стартовый нетерминал грамматики всегда S (вот так условились)
 // соотвественно vector[0] - первое правило грамматики, правило переписывания нетерминла S
-vector<Rule> Grammar;
+vector<Rule*> Grammar;
 
 string Clear_str(string str){
     string v;
@@ -215,54 +215,56 @@ int getFirstAltIndex (string str) {
 // 	return v;
 // }
 
-Tree parseConcat(string str) {
-    Tree t = {"zero addr", -1, nullptr, nullptr};
+struct Tree* parseAlt(string str);
+
+struct Tree* parseConcat(string str) {
+    struct Tree* t = new Tree;
     if (str.length() == 1) {
         if (islower(str[0])) {
-            t.str = str;
-            t.num = 5;
-            t.left = nullptr;
-            t.right = nullptr;
+            t->str = str;
+            t->num = 5;
+            t->left = NULL;
+            t->right = NULL;
             return t;
         }
         if (isupper(str[0])) {
-            t.str = str;
-            t.num = 6;
-            t.left = nullptr;
-            t.right = nullptr;
+            t->str = str;
+            t->num = 6;
+            t->left = NULL;
+            t->right = NULL;
             return t;
         }
         if (str == EMPTY) {
-            t.str = str;
-            t.num = 7;
-            t.left = nullptr;
-            t.right = nullptr;
+            t->str = str;
+            t->num = 7;
+            t->left = NULL;
+            t->right = NULL;
             return t;
         }
     }
     if (str.length() == 3) {
         if (str[0] == '[' && str[0] == ']') {
             string s = {str[1]};
-            t.str = str;
-            t.num = 0;
-            t.left = &parseConcat(s);;
-            t.right = nullptr;
+            t->str = str;
+            t->num = 0;
+            t->left = parseConcat(s);;
+            t->right = NULL;
             return t;
         }
         if (str[0] == '{' && str[0] == '}') {
             string s = {str[1]};
-            t.str = str;
-            t.num = 1;
-            t.left = &parseConcat(s);
-            t.right = nullptr;
+            t->str = str;
+            t->num = 1;
+            t->left = parseConcat(s);
+            t->right = NULL;
             return t;
         }
         if (str[0] == '(' && str[0] == ')') {   // такого случая наверное не будет в норм грамматике пользователя
             string s = {str[1]};
-            t.str = str;
-            t.num = 2;
-            t.left = &parseConcat(s);
-            t.right = nullptr;
+            t->str = str;
+            t->num = 2;
+            t->left = parseConcat(s);
+            t->right = NULL;
             return t;
         }
     }
@@ -276,21 +278,21 @@ Tree parseConcat(string str) {
         }
     }
     pos = 0;
-    string sub = parametrs["NtermEnd"];
+    sub = parametrs["NtermEnd"];
     if (sub != "") {
         while((pos = str.find(sub, pos)) != string::npos) {
             str.replace(pos, sub.length(), "");
         }
     }
     pos = 0;
-    string sub = parametrs["TermStart"];
+    sub = parametrs["TermStart"];
     if (sub != "") {
         while((pos = str.find(sub, pos)) != string::npos) {
             str.replace(pos, sub.length(), "");
         }
     }
     pos = 0;
-    string sub = parametrs["TermEnd"];
+    sub = parametrs["TermEnd"];
     if (sub != "") {
         while((pos = str.find(sub, pos)) != string::npos) {
             str.replace(pos, sub.length(), "");
@@ -299,84 +301,84 @@ Tree parseConcat(string str) {
     // парсим
     if (islower(str[0]) || isupper(str[0])) {
         string s = {str[0]};
-        t.str = str;
-        t.num = 4;
-        t.left = &parseConcat(s);
-        t.right = &parseConcat(str.substr(1));
+        t->str = str;
+        t->num = 4;
+        t->left = parseConcat(s);
+        t->right = parseConcat(str.substr(1));
         return t;
     }
     if (str[0] == '[') {
         int pos = str.find(']');
         if (pos != str.size() - 1) {
-            t.str = str;
-            t.num = 4;
-            t.left = &parseAlt(str.substr(0, pos));
-            t.right = &parseConcat(str.substr(pos + 1));
+            t->str = str;
+            t->num = 4;
+            t->left = parseAlt(str.substr(0, pos));
+            t->right = parseConcat(str.substr(pos + 1));
             return t;
         } else {
-            t.str = str;
-            t.num = 0;
-            t.left = &parseAlt(str);
-            t.right = nullptr;
+            t->str = str;
+            t->num = 0;
+            t->left = parseAlt(str);
+            t->right = NULL;
             return t;
         }    
     }
     if (str[0] == '{') {
         int pos = str.find('}');
         if (pos != str.size() - 1) {
-            t.str = str;
-            t.num = 4;
-            t.left = &parseAlt(str.substr(0, pos));
-            t.right = &parseConcat(str.substr(pos + 1));
+            t->str = str;
+            t->num = 4;
+            t->left = parseAlt(str.substr(0, pos));
+            t->right = parseConcat(str.substr(pos + 1));
             return t;
         } else {
-            t.str = str;
-            t.num = 1;
-            t.left = &parseAlt(str);
-            t.right = nullptr;
+            t->str = str;
+            t->num = 1;
+            t->left = parseAlt(str);
+            t->right = NULL;
             return t;
         }    
     }
     if (str[0] == '(') {
         int pos = str.find(')');
         if (pos != str.size() - 1) {
-            t.str = str;
-            t.num = 4;
-            t.left = &parseAlt(str.substr(0, pos));
-            t.right = &parseConcat(str.substr(pos + 1));
+            t->str = str;
+            t->num = 4;
+            t->left = parseAlt(str.substr(0, pos));
+            t->right = parseConcat(str.substr(pos + 1));
             return t;
         } else {
-            t.str = str;
-            t.num = 2;
-            t.left = &parseAlt(str);
-            t.right = nullptr;
+            t->str = str;
+            t->num = 2;
+            t->left = parseAlt(str);
+            t->right = NULL;
             return t;
         }    
     }
     return t;
 }
 
-Tree parseAlt(string str) {
-    Tree t;
+struct Tree* parseAlt(string str) {
+    struct Tree* t = new Tree;
     int alt = getFirstAltIndex(str);
     if (alt == -1) {
         t = parseConcat(str);  
 	} else {
-        t.str = str;
-        t.num = 3;
-        t.left = &parseAlt(str.substr(0, alt));
-        t.right = &parseAlt(str.substr(alt+1));	
+        t->str = str;
+        t->num = 3;
+        t->left = parseAlt(str.substr(0, alt));
+        t->right = parseAlt(str.substr(alt+1));	
 	}
     return t;
 }
 
-Rule parseRule(string str) {
-    Rule rule;
+Rule* parseRule(string str) {
+    Rule* rule = new Rule;
     string param = parametrs["NtermStart"];
     int len = param.length();
     int i = 0;
     if (str.substr(0, len) == param) {
-        rule.left = str.substr(len, 1);
+        rule->left = str.substr(len, 1);
         i = len + 1;    // теперь i указывает на следующий символ после нетерминала 
     } else {
         errSyntax = true;
@@ -384,7 +386,7 @@ Rule parseRule(string str) {
         exit(0);
     }
     param = parametrs["NtermEnd"];
-    int len = param.length();
+    len = param.length();
     if (str.substr(i, len) == param) {
         i += len; // теперь i указывает на следующий символ после NtermEnd
     } else {
@@ -393,7 +395,7 @@ Rule parseRule(string str) {
         exit(0);
     }
     param = parametrs["Arrow"];
-    int len = param.length();
+    len = param.length();
     if (str.substr(i, len) == param) {
         i += len; // теперь i указывает на следующий символ после Arrow
     } else {
@@ -402,8 +404,9 @@ Rule parseRule(string str) {
         exit(0);
     }
     // здесь начинаем парсить правую часть правила
-    Tree rightPart = parseAlt(str.substr(i));
-    rule.right = &rightPart;
+    struct Tree * rightPart = new struct Tree;
+    rightPart = parseAlt(str.substr(i));
+    rule->right = rightPart;
     return rule;
 }
 
@@ -417,7 +420,7 @@ int inputGrammar(int n) {
             if (parametrs["Delim"]=="\n") {
                 if (str.size()) {
                     //string_rules.push_back(str);
-                    Rule r = parseRule(str);
+                    Rule* r = parseRule(str);
                     Grammar.push_back(r);
                 }    
             }
@@ -426,7 +429,11 @@ int inputGrammar(int n) {
                     int k = str.find(parametrs["Delim"]);
                     if (k != -1){
                         string dopstr = str.substr(0,k);
-                        if (dopstr.size()) //string_rules.push_back(dopstr);
+                        if (dopstr.size())  {
+                            Rule* r = parseRule(dopstr);
+                            Grammar.push_back(r);
+                            //string_rules.push_back(dopstr);
+                        }
                         str=str.erase(0,k+1);
                     }
                     else break;
@@ -438,32 +445,54 @@ int inputGrammar(int n) {
     else return (false, errSyntax);
 }
 
+void printTree(struct Tree* t) {
+    if( t->str == " ") cout << "\nend\n";
+    else cout << t->str << endl;;
+    if (t->left != NULL) {
+        printTree(t->left); 
+    } 
+    if (t->right != NULL) {
+        printTree(t->right);
+    } 
+} 
+
+void printGrammar() {
+    int i = 0;
+    for (auto rule : Grammar) {
+        cout << "== RULE " << i++ << " ==" << endl;
+        cout << "NTERM: " << rule->left << endl;
+        cout << "RIGHT PART TREE:" << endl;
+        printTree(rule->right);
+    }
+    
+}
+
 int main() {
     int n;
     cout << "Enter test number" << endl;
     cin >> n;
     inputSyntax(n);
-    inputCFGsyntax(n);
+    //inputCFGsyntax(n);
 
     cout << ">> PARAMETRS <<" << endl;
     for (auto mypair: parametrs) {  
         cout << mypair.first << " = " << mypair.second << endl;
-        grammarSymbols.insert(mypair.second);
+        //grammarSymbols.insert(mypair.second);
     } 
 
     // добавляем параметры для КС 
-    cout << ">> CFG PARAMETRS <<" << endl;
-    for (auto mypair: parametrsCFG) {  
-        cout << mypair.first << " = " << mypair.second << endl;
+    // cout << ">> CFG PARAMETRS <<" << endl;
+    // for (auto mypair: parametrsCFG) {  
+    //     cout << mypair.first << " = " << mypair.second << endl;
         
-    } 
+    // } 
 
-    cout << "grammarSymbols" << endl;
-    set <string> :: iterator it = grammarSymbols.begin();
-    for (int i = 1; it != grammarSymbols.end(); i++, it++) {
-        cout << *it << " ";
-    }
-    cout << endl;
+    // cout << "grammarSymbols" << endl;
+    // set <string> :: iterator it = grammarSymbols.begin();
+    // for (int i = 1; it != grammarSymbols.end(); i++, it++) {
+    //     cout << *it << " ";
+    // }
+    // cout << endl;
 
     // парсим грамматику
     // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), 
@@ -483,7 +512,7 @@ int main() {
     }
 
     cout << ">> PARSED GRAMMAR <<" << endl;
-    
+    printGrammar();
 
     
 
