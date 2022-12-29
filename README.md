@@ -68,7 +68,9 @@
 [Grammar] -> [Rules]
 [Rules] -> [Rule] | [Rule][Delim][Rules]
 [Rule] -> [Nterm][Arrow][RightPart]  
-[RightPart] -> [Term][RighPart]|[NTerm][RightPart]|[Empty]
+[RightPart] -> [RightPart1]|[Empty]
+[RightPart1]->[Term]|[Nterm]|[Nterm][ConcatorAlternative][RightPart1]|[Term][ConcatorAlternative][RightPart1]
+[ConcatorAlternative]->[Concat]|[Alternative]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
 [NtermStr] -> [A-Z]
@@ -88,7 +90,8 @@
 | [TermEnd]  | символ конца терминала  | '' - пустая строка |
 | [NtermStart]  | символ начала нетерминала  | ' - одинарная кавычка |
 | [NtermEnd]  | символ конца нетерминала  | ' - одинарная кавычка |  
-
+| [Concat] | символ для конкатенации |''-пустая строка|
+|[Alternative] | символ для альтернативы | '|'
 
 ## Пример использования
 syntax.txt  
