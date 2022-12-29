@@ -152,11 +152,9 @@ int getFirstAltIndex (string str) {
 struct Tree* parseAlt(string str);
 
 struct Tree* parseConcat(string str) {
-    cout << "CONC: " << str << endl;
     struct Tree* tr = new Tree;
     if (str.length() == 1) {
         if (islower(str[0])) {
-            cout << "LOWWER" << endl;
             tr->str = str;
             tr->num = 5;
             tr->left = NULL;
@@ -164,7 +162,6 @@ struct Tree* parseConcat(string str) {
             return tr;
         }
         if (isupper(str[0])) {
-            cout << "UPPER" << endl;
             tr->str = str;
             tr->num = 6;
             tr->left = NULL;
@@ -223,7 +220,6 @@ struct Tree* parseConcat(string str) {
             tr->right = parseConcat(str.substr(pos + 1));
             return tr;
         } else if (pos == str.size() - 1){
-            cout << "HERE []" << endl;
             tr->str = str;
             tr->num = 0;
             tr->left = parseAlt(str.substr(1,pos - 1));
@@ -235,14 +231,12 @@ struct Tree* parseConcat(string str) {
         // не просто первую закрывающую, а последнюю
         int pos = str.rfind('}');
         if (pos < str.size() - 1) {
-            cout << "HERE 1 {}" << endl;
             tr->str = str;
             tr->num = 4;
             tr->left = parseAlt(str.substr(0, pos + 1));
             tr->right = parseConcat(str.substr(pos + 1));
             return tr;
         } else if (pos == str.size() - 1){
-            cout << "HERE {}" << endl;
             tr->str = str;
             tr->num = 1;
             tr->left = parseAlt(str.substr(1, pos - 1));
@@ -274,7 +268,6 @@ struct Tree* parseAlt(string str) {
     struct Tree* t = new Tree;
     int alt = getFirstAltIndex(str);
     if (alt == -1) {
-        cout << "debug - concat root" << endl;
         t = parseConcat(str);  
 	} else {
         t->str = str;
