@@ -151,6 +151,21 @@ int getFirstAltIndex (string str) {
 	return -1;
 }
 
+int findClosingParanthesis( string str, char pstart, char pend) {
+    int c = 0;
+	for (int i = 0; i < str.size(); i++) {
+		if (str[i] == pstart) {
+			c++;
+		} else if (str[i] == pend) {
+			c--;
+			if (c == 0) {
+				return i;
+			}
+		}
+	}
+    return -1;
+}
+
 struct Tree* parseAlt(string str);
 
 struct Tree* parseConcat(string str) {
@@ -214,53 +229,64 @@ struct Tree* parseConcat(string str) {
         return tr;
     }
     if (str[0] == '[') {
-        int pos = str.rfind(']');
-        if (pos != str.size() - 1) {
-            tr->str = str;
-            tr->num = 4;
-            tr->left = parseAlt(str.substr(0, pos + 1));
-            tr->right = parseConcat(str.substr(pos + 1));
-            return tr;
-        } else if (pos == str.size() - 1){
-            tr->str = str;
-            tr->num = 0;
-            tr->left = parseAlt(str.substr(1,pos - 1));
-            tr->right = NULL;
-            return tr;
+        int pos = findClosingParanthesis(str, '[', ']');
+        if (pos != -1) {
+            if (pos != str.size() - 1) {
+                tr->str = str;
+                tr->num = 4;
+                tr->left = parseAlt(str.substr(0, pos + 1));
+                tr->right = parseConcat(str.substr(pos + 1));
+                return tr;
+            } else if (pos == str.size() - 1) {
+                cout << "HERE []" << endl;
+                tr->str = str;
+                tr->num = 0;
+                tr->left = parseAlt(str.substr(1,pos - 1));
+                tr->right = NULL;
+                return tr;
+            }
         }    
     }
     if (str[0] == '{') {
-        // не просто первую закрывающую, а последнюю
-        int pos = str.rfind('}');
-        if (pos < str.size() - 1) {
-            tr->str = str;
-            tr->num = 4;
-            tr->left = parseAlt(str.substr(0, pos + 1));
-            tr->right = parseConcat(str.substr(pos + 1));
-            return tr;
-        } else if (pos == str.size() - 1){
-            tr->str = str;
-            tr->num = 1;
-            tr->left = parseAlt(str.substr(1, pos - 1));
-            tr->right = NULL;
-            return tr;
+        // здесь поиск закрывающей соответствующей скобки
+        int pos = findClosingParanthesis(str, '{', '}');
+        if (pos != -1) {
+            if (pos < str.size() - 1) {
+                cout << "HERE 1 {}" << endl;
+                tr->str = str;
+                tr->num = 4;
+                tr->left = parseAlt(str.substr(0, pos + 1));
+                tr->right = parseConcat(str.substr(pos + 1));
+                return tr;
+            } else if (pos == str.size() - 1){
+                cout << "HERE {}" << endl;
+                tr->str = str;
+                tr->num = 1;
+                tr->left = parseAlt(str.substr(1, pos - 1));
+                tr->right = NULL;
+                return tr;
+            }
         }    
     }
     if (str[0] == '(') {
-        int pos = str.rfind(')');
-        if (pos != str.size() - 1) {
-            tr->str = str;
-            tr->num = 4;
-            tr->left = parseAlt(str.substr(0, pos + 1));
-            tr->right = parseConcat(str.substr(pos + 1));
-            return tr;
-        } else {
-            tr->str = str;
-            tr->num = 2;
-            tr->left = parseAlt(str.substr(1,pos - 1));
-            tr->right = NULL;
-            return tr;
-        }    
+        cout << "debug - str starts with ("<< endl;
+        int pos = findClosingParanthesis(str, '(', ')');
+        cout << "pos of ): " << pos << endl;
+        if (pos != -1) {
+            if (pos != str.size() - 1) {
+                tr->str = str;
+                tr->num = 4;
+                tr->left = parseAlt(str.substr(0, pos + 1));
+                tr->right = parseConcat(str.substr(pos + 1));
+                return tr;
+            } else {
+                 tr->str = str;
+                tr->num = 2;
+                tr->left = parseAlt(str.substr(1,pos - 1));
+                tr->right = NULL;
+                return tr;
+            }    
+        }
     }
     return tr;
 }
