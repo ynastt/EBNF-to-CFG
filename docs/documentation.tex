@@ -1,0 +1,265 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english, russian]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{float}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{Документация по использованию конвертера
+EBNF-to-CFG}
+\author{Емельяненко Д.С.\\ Яровикова А.С.}
+\date{Декабрь 2022}
+
+\begin{document}
+\maketitle
+
+%\begin{abstract}
+%Your abstract.
+%\end{abstract}
+
+\section{Введение}
+Конвертер \href{https://github.com/ynastt/EBNF-to-CFG}{EBNF-to-CFG} используется для построения \href{https://ru.wikipedia.org/wiki/Контекстно-свободная_грамматика}{КС-грамматики}, эквивалентной введенной \href{https://ru.wikipedia.org/wiki/Расширенная_форма_Бэкуса_—_Наура}{РБНФ} в пользовательском синтаксисе. 
+
+\section{Использование}
+
+\subsection{Установка и запуск}
+\begin{enumerate}
+    \item Клонируем репозиторий проекта в выбранную папку
+    \begin{lstlisting}
+    git clone https://github.com/ynastt/EBNF-to-CFG.git
+    \end{lstlisting}
+    \item Переходим в папку проекта
+    \begin{lstlisting}
+    cd EBNF-to-CFG
+    \end{lstlisting}
+    \item В папке tests создаем папку для теста и создаем файлы syntax.txt (опционально), input.txt, CFGsyntax.txt (опционально)
+    \begin{lstlisting}
+    cd tests
+    mkdir test1
+    cd test1
+    vim syntax.txt
+    vim input.txt
+    vim CFGsyntax.txt
+    \end{lstlisting} 
+    \item Запускаем программу main.cpp из корневой папки проекта
+    \begin{lstlisting}
+    g++ -Wall -o main main.cpp
+    ./main
+    \end{lstlisting}
+    \item Результат программы будет в терминале и созданном файле output.txt
+    \begin{lstlisting}
+    cd EBNF-to-CFG\tests\test1
+    vim output.txt
+    \end{lstlisting}
+\end{enumerate}
+
+\subsection{Формат входных данных}
+Программа обрабатывает входные данные следующих файлов:
+\begin{itemize}
+\item syntax.txt - файл с пользовательскими параметрами РБНФ грамматики;
+\item input.txt - файл с пользовательской грамматикой;
+\item CFGsyntax.txt - файл с пользовательскими параметрами для КС-грамматики 
+\end{itemize}
+
+\begin{figure}[H]
+Входная РБНФ грамматика имеет вид:
+\centering
+        $$\begin{array}{l}
+        [Grammar] \to [Rules] \\  
+        
+        [Rules] \to [Rule] \;|\; [Rule]\,[Delim]\,[Rules] \\
+
+        [Rule] \to [Nterm]\,[Arrow]\,[RightPart]  \\
+
+        [RightPart] \to [Operation[]Start]\,[Term]\,[ConcOrAlt]\,[Rightpart]\,          [Operation[]End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation[]Start]\,[Nterm]\,[ConcOrAlt]\,[Rightpart]\,[Operation[]End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation[]Start]\,[Rightpart]\,[Operation[]End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation()Start]\,[Term]\,[ConcOrAlt]\,[Rightpart]\,[Operation()End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation()Start]\,[Nterm]\,[ConcOrAlt]\,[Rightpart]\,[Operation()End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation()Start]\,[Rightpart]\,[Operation()End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation\{\}Start]\,[Term]\,[ConcOrAlt]\,[Rightpart]\,[Operation\{\}End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation\{\}Start]\,[Nterm]\,[ConcOrAlt]\,[Rightpart]\,[Operation\{\}End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Operation\{\}Start]\,[Rightpart]\,[Operation\{\}End]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Term]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Nterm]\,[ConcOrAlt]\,[Rightpart] \;|\; \\
+        
+        \qquad\qquad\qquad[Empty] \\
+        
+        [ConcOrAlt] \to [Concat] \;|\; [Alternative] \\
+        
+        [Term] \to [TermStart]\,[TermStr]\,[TermEnd] \\
+        
+        [Nterm] \to [NtermStart]\,[NtermStr]\,[NtermEnd] \\ 
+        
+        [Alternative] \to \;'\;|\;'\; \\
+
+        [Concat] \to \\
+        
+        [NtermStr] \to [A-Z] \\
+        
+        [TermStr] \to [a-z] \\
+        
+        [Operation[]Start] \to \;'\;[\;'\; \\
+        
+        [Operation[]End] \to \;'\;]\;'\; \\
+        
+        [Operation\{\}Start] \to \;'\; \{ \;'\; \\
+        
+        [Operation\{\}End] \to \;'\; \} \;'\; \\ 
+        
+        [Operation()Start] \to \;'\;(\;'\; \\ 
+        
+        [Operation()End] \to  \;'\;)\;'\; \\
+        \end{array}$$  
+\end{figure}
+Все параметры, которые встречаются в грамматике, но не имеют правил раскрытия, пользователь может задать самостоятельно в файле syntax.txt. По умолчанию программа задаёт эти параметры, опираясь на встроенный синстаксис. Ниже перечислены данные параметры. Пустые ячейки в таблице означают то, что значение параметра = пустая строка.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{ |c | c | c| }
+\hline 
+Название параметра & Применение	& Значение по умолчанию \\ [0.5ex]
+\hline
+[Delim]	& разделитель правил грамматики	& '\backslash\,n' \\ [0.5ex]
+\hline
+[Arrow]	& разделитель левой и правой части правила	& '->' \\ [0.5ex]
+\hline
+[TermStart]	& символ начала терминала &  \\ [0.5ex]
+\hline
+[TermEnd] & символ начала терминала &  \\ [0.5ex]
+\hline
+[NtermStart] & символ начала нетерминала & ' \\ [0.5ex]
+\hline
+[NtermEnd] & символ конца нетерминала & ' \\ [0.5ex]
+\hline
+[Empty] & символ пустоты (обозначение для ε) & '\#' \\ [0.5ex]
+\hline
+\end{tabular}
+\caption{Параметры пользовательской РБНФ грамматики.}
+\end{table}
+
+\newline
+\textbf{Пользовательская РБНФ грамматика имеет следующие ограничения (при несоблюдении программа аварийно завершится):}
+
+\begin{itemize}
+\item Пользователь должен вводить грамматику в input.txt, учитывая значения по умолчанию для тех параметров, значения которых он оставил пустыми в файле syntax.txt.
+
+(Например, в РБНФ грамматике по умолчанию в качестве обрамляющих символов для нетерминалов используются одинарные кавычки 'S', если пользователь не задаст эти параметры или их оставит пустым (NtermStart= и NtermEnd=), то программа подставит значения по умолчанию, т.е.
+NtermStart= ' и NtermEnd= '. Если пользователь далее введет грамматику без учета значений параметров по умолчанию, то программа выдаст ошибку и завершится.)
+\item Пробел запрещен для обозначения каких-либо параметров пользовательской грамматики.
+\item Начальным считается нетерминал, правило переписывания которого введено первым в input.txt.
+\end{itemize}
+
+\subsection{Формат выходных данных}
+В результате выполнения программы в директории tests/test<номер теста> будет создан файл output.txt с построенной КС-грамматикой. Также результат программы будет выведен в терминале.
+
+\begin{figure}[H]
+КС-грамматика на выходе имеет следующий вид:
+\centering
+        $$\begin{array}{l}
+        [Grammar] \to [Rules] \\  
+        
+        [Rules] \to [Rule] \;|\; [Rule]\,[Delim]\,[Rules] \\
+
+        [Rule] \to [Nterm]\,[Arrow]\,[RightPart]  \\ 
+        
+        [RightPart] \to [RightPart1] \;|\; [Empty]\\ 
+
+        [RightPart1] \to [Term] \;|\; [Nterm] \;|\; [Nterm]\,[ConcOrAlt]\,[RightPart1] \;|\; [Term]\,[ConcOrAlt]\,[RightPart1] \\
+        
+        [ConcOrAlt] \to [Concat] \;|\; [Alternative] \\
+        
+        [Term] \to [TermStart]\,[TermStr]\,[TermEnd] \\
+        
+        [Nterm] \to [NtermStart]\,[NtermStr]\,[NtermEnd] \\ 
+        
+        [NtermStr] \to [A-Z] \\
+        
+        [TermStr] \to [a-z] \\
+        \end{array}$$  
+\end{figure}
+Все параметры, которые встречаются в грамматике, но не имеют правил раскрытия, пользователь может задать самостоятельно в файле CFGsyntax.txt. По умолчанию программа задаёт эти параметры, опираясь на встроенный синстаксис. Ниже перечислены данные параметры. Пустые ячейки в таблице означают то, что значение параметра = пустая строка.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{ |c | c | c| }
+\hline 
+Название параметра & Применение	& Значение по умолчанию \\ [0.5ex]
+\hline
+[Delim]	& разделитель правил грамматики	& '\backslash\,n' \\ [0.5ex]
+\hline
+[Arrow]	& разделитель левой и правой части правила	& '->' \\ [0.5ex]
+\hline
+[Empty] & символ пустоты (обозначение для ε) &  \\ [0.5ex]
+\hline
+[TermStart]	& символ начала терминала &  \\ [0.5ex]
+\hline
+[TermEnd] & символ начала терминала &  \\ [0.5ex]
+\hline
+[NtermStart] & символ начала нетерминала & ' \\ [0.5ex]
+\hline
+[NtermEnd] & символ конца нетерминала & ' \\ [0.5ex]
+\hline
+[Concat] & символ конкатенации &  \\ [0.5ex]
+\hline
+[Alternative] & символ для альтернативы & '|' \\ [0.5ex]
+\hline
+\end{tabular}
+\caption{Параметры КС-грамматики.}
+\end{table}
+
+\subsection{Пример использования}
+\textbf{syntax.txt}
+\begin{lstlisting}   
+    Delim= 
+    Arrow= :=
+    NtermStart= SS
+    NtermEnd= SS
+\end{lstlisting}
+
+\textbf{input.txt}
+\begin{lstlisting}   
+    SSKSS := [a {SSSSS}] | b | # 
+    SSSSS := c | #
+\end{lstlisting}
+
+\textbf{CFGsyntax.txt}
+\begin{lstlisting}   
+    Arrow= =>
+    Empty= @
+    Alternative= \\
+\end{lstlisting}
+
+\textbf{output.txt (и в терминале)}
+\begin{lstlisting}   
+    'K'=>'A0'
+    'A0'=>'A2'\\'A1'
+    'A1'=>b\\@
+    'A2'=>a'A3'\\@
+    'A3'=>'S''A3'\\@
+    'S'=>'A4'
+    'A4'=>c\\@
+\end{lstlisting}
+
+\end{document}
