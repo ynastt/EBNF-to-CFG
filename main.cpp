@@ -8,7 +8,7 @@
 #include <cctype>
 
 using namespace std;
-const string EMPTY = "#";
+// const string EMPTY = "#";
 
 map <string, string> parametrs {
     {"Delim", "\n"},
@@ -16,7 +16,8 @@ map <string, string> parametrs {
     {"TermStart", ""},
     {"TermEnd", ""},
     {"NtermStart", "'"},
-    {"NtermEnd", "'"}
+    {"NtermEnd", "'"},
+    {"Empty", "#"}
     // {"Operation[]Start", "["},
     // {"Operation[]End", "]"},
     // {"Operation{}Start", "{"},
@@ -185,7 +186,7 @@ struct Tree* parseConcat(string str) {
             tr->right = NULL;
             return tr;
         }
-        if (str == EMPTY) {
+        if (str == parametrs["Empty"]/*EMPTY*/) {
             tr->str = str;
             tr->num = 7;
             tr->left = NULL;
