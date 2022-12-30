@@ -21,15 +21,15 @@
                [Operation{}Start][Term][ConcOrAlt][Rightpart][Operation{}End][ConcOrAlt][Rightpart] |
                [Operation{}Start][Nterm][ConcOrAlt][Rightpart][Operation{}End][ConcOrAlt][Rightpart] |
                [Operation{}Start][Rightpart][Operation{}End][ConcOrAlt][Rightpart] |
-               [Term] [Concatoralternative][Rightpart] |
-               [Nterm][Concatoralternative] [Rightpart] | 
+               [Term] [ConcOrAlt][Rightpart] |
+               [Nterm][ConcOrAlt] [Rightpart] | 
                [Empty] 
 
-[ConcOrAlt] -> [OperationConcat] | [OperationAlternative]
+[ConcOrAlt] -> [Concat] | [Alternative]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
-[OperationAlternative] -> '|'  
-[OperationConcat] ->  
+[Alternative] -> '|'  
+[Concat] ->  
 [NtermStr] -> [A-Z]
 [TermStr] -> [a-z]
 [Operation[]Start] -> '['  
@@ -69,8 +69,8 @@
 [Rules] -> [Rule] | [Rule][Delim][Rules]
 [Rule] -> [Nterm][Arrow][RightPart]  
 [RightPart] -> [RightPart1]|[Empty]
-[RightPart1] -> [Term]|[Nterm]|[Nterm][ConcatorAlternative][RightPart1]|[Term][ConcatorAlternative][RightPart1]
-[ConcatorAlternative]->[Concat]|[Alternative]
+[RightPart1] -> [Term]|[Nterm]|[Nterm][ConcOrAlt][RightPart1]|[Term][ConcOrAlt][RightPart1]
+[ConcOrAlt]->[Concat]|[Alternative]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
 [NtermStr] -> [A-Z]
