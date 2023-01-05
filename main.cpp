@@ -8,7 +8,7 @@
 #include <cctype>
 
 using namespace std;
-const string EMPTY = "#";
+// const string EMPTY = "#";
 
 map <string, string> parametrs {
     {"Delim", "\n"},
@@ -65,15 +65,15 @@ struct Rule {
 // соотвественно vector[0] - первое правило грамматики, правило переписывания нетерминла S
 vector<Rule*> Grammar;
 
-string Clear_str(string str) {
+string Clear_str(string str){
     string v;
     for(char c : str) if (c != ' ') v += c;
     return v;
 }
 
-void inputSyntax(int n) {
+void inputSyntax(int n){
     string testName = "tests\\test" + to_string(n) + "\\syntax.txt";
-    // cout << testName << endl;
+    cout << testName << endl;
     ifstream file(testName);
     if (file.is_open()) {
         string str;
@@ -86,6 +86,32 @@ void inputSyntax(int n) {
                         if (str.substr(pos+2) != "") {
                             parametrs[key] = str.substr(pos+2);
                             // cout << key << " - " << parametrs[key] << endl;
+                        }
+                    }
+                }
+            }
+        }
+        file.close();
+    } else {
+        cout << "file 'syntax.txt' does not exist. All parametrs are default" << endl;
+    }
+}
+
+void inputCFGsyntax(int n){
+    string testName = "tests\\test" + to_string(n) + "\\CFGsyntax.txt";
+    cout << testName << endl;
+    ifstream file(testName);
+    if (file.is_open()) {
+        string str;
+        while (getline(file,str)) {
+            if (str.size()) {
+                int pos = str.find("=");
+                for(auto mypair: parametrsCFG) {
+                    string key = mypair.first;
+                    if (str.substr(0, pos) == key) {
+                        if (str.substr(pos+2) != "") {
+                            parametrsCFG[key] = str.substr(pos+2);
+                            // cout << key << " - " << parametrsCFG[key] << endl;
                         }
                     }
                 }
@@ -189,7 +215,7 @@ struct Tree* parseConcat(string str) {
             tr->right = NULL;
             return tr;
         }
-        if (str[0] == '(' && str[2] == ')') {   
+        if (str[0] == '(' && str[2] == ')') {   // такого случая наверное не будет в норм грамматике пользователя
             string s = {str[1]};
             tr->str = str;
             tr->num = 2;
@@ -217,6 +243,7 @@ struct Tree* parseConcat(string str) {
                 tr->right = parseConcat(str.substr(pos + 1));
                 return tr;
             } else if (pos == str.size() - 1) {
+                //cout << "HERE []" << endl;
                 tr->str = str;
                 tr->num = 0;
                 tr->left = parseAlt(str.substr(1,pos - 1));
@@ -230,12 +257,14 @@ struct Tree* parseConcat(string str) {
         int pos = findClosingParanthesis(str, '{', '}');
         if (pos != -1) {
             if (pos < str.size() - 1) {
+                //cout << "HERE 1 {}" << endl;
                 tr->str = str;
                 tr->num = 4;
                 tr->left = parseAlt(str.substr(0, pos + 1));
                 tr->right = parseConcat(str.substr(pos + 1));
                 return tr;
-            } else if (pos == str.size() - 1) {
+            } else if (pos == str.size() - 1){
+                //cout << "HERE {}" << endl;
                 tr->str = str;
                 tr->num = 1;
                 tr->left = parseAlt(str.substr(1, pos - 1));
@@ -245,7 +274,9 @@ struct Tree* parseConcat(string str) {
         }    
     }
     if (str[0] == '(') {
+        //cout << "debug - str starts with ("<< endl;
         int pos = findClosingParanthesis(str, '(', ')');
+        //cout << "pos of ): " << pos << endl;
         if (pos != -1) {
             if (pos != str.size() - 1) {
                 tr->str = str;
@@ -254,7 +285,7 @@ struct Tree* parseConcat(string str) {
                 tr->right = parseConcat(str.substr(pos + 1));
                 return tr;
             } else {
-                tr->str = str;
+                 tr->str = str;
                 tr->num = 2;
                 tr->left = parseAlt(str.substr(1,pos - 1));
                 tr->right = NULL;
@@ -269,7 +300,6 @@ struct Tree* parseAlt(string str) {
     //cout << "ALT: " << str << endl;
     struct Tree* t = new Tree;
     int alt = getFirstAltIndex(str);
-    //cout << "first outter alt: " << alt << endl;
     if (alt == -1) {
         t = parseConcat(str);  
 	} else {
@@ -386,11 +416,8 @@ bool inputGrammar(int n) {
     else return (false);
 }
 
-void printTree(struct Tree* t) {  
-    //if (t != NULL) {
-        cout << t->str << " " << t->num << endl;
-    //}  
-    
+void printTree(struct Tree* t) {    
+    cout << t -> str <<" "<<t->num<< endl;;
     if (t->left != NULL) {
         printTree(t->left); 
     } 
@@ -415,7 +442,7 @@ void printGrammar() {
     
 }
 
-struct cfg_rule {
+struct cfg_rule{
     string leftpart;
     string rightpart;
 };
@@ -425,7 +452,6 @@ vector <cfg_rule> cfg_answer;
 vector <cfg_rule> onerule;
  
 vector <string> forcheck;
-
 //Функция для генерации разных нетерминалов
 string GeneratorNewNeterm(){
     int num=0;
@@ -586,9 +612,9 @@ void PrintAnswer(int n){
     }
 }
 
-void inputSyntax_2(int n) {
+void inputSyntax_2(int n){
     string testName = "tests\\test" + to_string(n) + "\\CFGsyntax.txt";
-    // cout << testName << endl;
+    cout << testName << endl;
     ifstream file(testName);
     if (file.is_open()) {
         string str;
@@ -619,11 +645,22 @@ int main() {
     cout << "Enter test number" << endl;
     cin >> n;
     inputSyntax(n);
+
     cout << ">> PARAMETRS <<" << endl;
     for (auto mypair: parametrs) {  
         cout << mypair.first << " = " << mypair.second << endl;
     } 
 
+    // добавляем параметры для КС 
+    //inputCFGsyntax(n);
+    // cout << ">> CFG PARAMETRS <<" << endl;
+    // for (auto mypair: parametrsCFG) {  
+    //     cout << mypair.first << " = " << mypair.second << endl;    
+    // } 
+
+    // парсим грамматику
+    // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), 
+    // то говорим об ошибке err
     bool empty;
     empty  = inputGrammar(n);
     if (empty) {
@@ -632,17 +669,14 @@ int main() {
     } else {
         cout << "\nGrammar is fine! " << endl;
     }
-
     inputSyntax_2(n);
     cout << ">> PARAMETRS FOR CFG <<" << endl;
     for (auto mypair: parametrsCFG) {  
         cout << mypair.first << " = " << mypair.second << endl;
     } 
-
     cout << ">> PARSED GRAMMAR <<" << endl;
     printGrammar();
     cout<<"\n\n";
-
     ConvertertoCFG();
     cout<<"\n.....CFG.....\n";
     PrintAnswer(n);
