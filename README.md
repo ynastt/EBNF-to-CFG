@@ -69,13 +69,16 @@
 [Rules] -> [Rule] | [Rule][Delim][Rules]
 [Rule] -> [Nterm][Arrow][RightPart]  
 [RightPart] -> [RightPart1]|[Empty]
-[RightPart1] -> [Term]|[Nterm]|[Nterm][ConcOrAlt][RightPart1]|[Term][ConcOrAlt][RightPart1]
+[RightPart1] -> [RightPart2][Newoperation]
+[Newoperation]->[Alternative][RightPart1]|ebs ,(Здесь ebs пользователь не может задавать, ebs чисто техническое)
+[RightPart2]-> [Term]|[Nterm]|[Nterm][Concat][RightPart2]|[Term][Concat][RightPart2]
 [ConcOrAlt]->[Concat]|[Alternative]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
 [NtermStr] -> [A-Z]
 [TermStr] -> [a-z]
- ```  
+ ``` 
+ 
 Все параметры, которые встречаются в грамматике, но не имеют правил раскрытия, пользователь может задать самостоятельно.
 По умолчанию программа задаёт эти параметры, опираясь на встроенный синстаксис. Ниже вы можете ознакомиться со значениями по умолчанию. 
 
