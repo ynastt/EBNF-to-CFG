@@ -72,7 +72,6 @@
 [RightPart1] -> [RightPart2][Newoperation]
 [Newoperation]->[Alternative][RightPart1]|ebs ,(Здесь ebs пользователь не может задавать, ebs чисто техническое)
 [RightPart2]-> [Term]|[Nterm]|[Nterm][Concat][RightPart2]|[Term][Concat][RightPart2]
-[ConcOrAlt]->[Concat]|[Alternative]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
 [NtermStr] -> [A-Z]
