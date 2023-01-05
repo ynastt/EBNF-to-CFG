@@ -70,7 +70,7 @@
 [Rule] -> [Nterm][Arrow][RightPart]  
 [RightPart] -> [RightPart1]|[Empty]
 [RightPart1] -> [RightPart2][Newoperation]
-[Newoperation]->[Alternative][RightPart1]|ebs 
+[Newoperation]->[Alternative][RightPart1]|ε 
 [RightPart2]-> [Term]|[Nterm]|[Nterm][Concat][RightPart2]|[Term][Concat][RightPart2]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
@@ -78,7 +78,7 @@
 [TermStr] -> [a-z]
  ``` 
  
-Все параметры, которые встречаются в грамматике, но не имеют правил раскрытия, пользователь может задать самостоятельно, кроме ebs, данная пустота служит для задания корректной грамматики. 
+Все параметры, которые встречаются в грамматике, но не имеют правил раскрытия, пользователь может задать самостоятельно, кроме ε, данная пустота служит для задания корректной грамматики. 
 По умолчанию программа задаёт эти параметры, опираясь на встроенный синстаксис. Ниже вы можете ознакомиться со значениями по умолчанию. 
 
 **Параметры КС-грамматики**
