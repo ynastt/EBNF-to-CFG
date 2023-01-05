@@ -131,9 +131,11 @@ int getFirstAltIndex (string str) {
     int outBracketsCount1 = 0;
     int outBracketsCount2 = 0;
     int outBracketsCount3 = 0;
-	for (int i =0; i < str.size(); i++) {
-		if (outBracketsCount1 == outBracketsCount2 == outBracketsCount3 == 0 && 
-		str[i] == '|') {
+	for (int i = 0; i < str.size(); i++) {
+        //printf("counters are\n(): %d\n{}: %d\n[]: %d\n", outBracketsCount1, outBracketsCount2, outBracketsCount3);
+        //cout << "letter: " << str[i] << endl;
+		if (outBracketsCount1 == 0 && outBracketsCount2 == 0 &&
+             outBracketsCount3 == 0 && str[i] == '|') {
 			return i;
 		} else if (str[i] == '(') {
 			outBracketsCount1++;
@@ -147,7 +149,9 @@ int getFirstAltIndex (string str) {
 			outBracketsCount3++;
 		} else if (str[i] == ']') {
 			outBracketsCount3--;
-		}
+		} else {
+            continue;
+        }
 	}
 	return -1;
 }
@@ -239,7 +243,7 @@ struct Tree* parseConcat(string str) {
                 tr->right = parseConcat(str.substr(pos + 1));
                 return tr;
             } else if (pos == str.size() - 1) {
-                cout << "HERE []" << endl;
+                //cout << "HERE []" << endl;
                 tr->str = str;
                 tr->num = 0;
                 tr->left = parseAlt(str.substr(1,pos - 1));
@@ -253,14 +257,14 @@ struct Tree* parseConcat(string str) {
         int pos = findClosingParanthesis(str, '{', '}');
         if (pos != -1) {
             if (pos < str.size() - 1) {
-                cout << "HERE 1 {}" << endl;
+                //cout << "HERE 1 {}" << endl;
                 tr->str = str;
                 tr->num = 4;
                 tr->left = parseAlt(str.substr(0, pos + 1));
                 tr->right = parseConcat(str.substr(pos + 1));
                 return tr;
             } else if (pos == str.size() - 1){
-                cout << "HERE {}" << endl;
+                //cout << "HERE {}" << endl;
                 tr->str = str;
                 tr->num = 1;
                 tr->left = parseAlt(str.substr(1, pos - 1));
@@ -270,9 +274,9 @@ struct Tree* parseConcat(string str) {
         }    
     }
     if (str[0] == '(') {
-        cout << "debug - str starts with ("<< endl;
+        //cout << "debug - str starts with ("<< endl;
         int pos = findClosingParanthesis(str, '(', ')');
-        cout << "pos of ): " << pos << endl;
+        //cout << "pos of ): " << pos << endl;
         if (pos != -1) {
             if (pos != str.size() - 1) {
                 tr->str = str;
