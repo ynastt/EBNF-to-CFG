@@ -70,7 +70,7 @@
 [Rule] -> [Nterm][Arrow][RightPart]  
 [RightPart] -> [RightPart1]|[Empty]
 [RightPart1] -> [RightPart2][Newoperation]
-[Newoperation]->[Alternative][RightPart1]|ebs ,(Здесь ebs пользователь не может задавать, ebs чисто техническое)
+[Newoperation]->[Alternative][RightPart1]| 
 [RightPart2]-> [Term]|[Nterm]|[Nterm][Concat][RightPart2]|[Term][Concat][RightPart2]
 [Term] -> [TermStart] [TermStr] [TermEnd]  
 [Nterm] -> [NtermStart] [NtermStr] [NtermEnd] 
@@ -93,6 +93,7 @@
 | [NtermEnd]  | символ конца нетерминала  | ' - одинарная кавычка |  
 | [Concat] | символ для конкатенации |'' - пустая строка|
 |[Alternative] | символ для альтернативы | '\|'|
+
 
 ## Пример использования
 syntax.txt  
