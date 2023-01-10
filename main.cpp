@@ -8,7 +8,7 @@
 #include <cctype>
 
 using namespace std;
-// const string EMPTY = "#";
+const string EMPTY = "#";
 
 map <string, string> parametrs {
     {"Delim", "\n"},
@@ -44,6 +44,8 @@ set <string> grammarSymbols;
 
 bool err = false;
 bool errSyntax = false;
+int lock = false;
+string saveInputEmpty = "";
 
 // структура для описания правила переписывания нетерминала
 struct Tree {
@@ -173,8 +175,9 @@ int findClosingParanthesis( string str, char pstart, char pend) {
 
 struct Tree* parseAlt(string str);
 
-struct Tree* parseConcat(string str) {
+struct Tree* parseConcat(string str) { 
     struct Tree* tr = new Tree;
+    // cout << "CON: " << str << endl;
     if (str.length() == 1) {
         if (islower(str[0])) {
             tr->str = str;
@@ -190,8 +193,8 @@ struct Tree* parseConcat(string str) {
             tr->right = NULL;
             return tr;
         }
-        if (str == parametrs["Empty"]/*EMPTY*/) {
-            tr->str = str;
+        if (str == parametrs["Empty"]) {
+            tr->str = parametrs["Empty"];
             tr->num = 7;
             tr->left = NULL;
             tr->right = NULL;
@@ -297,7 +300,7 @@ struct Tree* parseConcat(string str) {
 }
 
 struct Tree* parseAlt(string str) {
-    //cout << "ALT: " << str << endl;
+    // cout << "ALT: " << str << endl;
     struct Tree* t = new Tree;
     int alt = getFirstAltIndex(str);
     if (alt == -1) {
@@ -345,6 +348,23 @@ string removeNtermTermBrackets(string str) {
     return str;
 }
 
+string magicReplaceEmpty(string str) {
+    int pos = 0;
+    lock = false;
+    string sub = parametrs["Empty"];
+    if (sub != "#" && !lock) {
+        saveInputEmpty = sub;
+        lock = true;
+    }
+    parametrs["Empty"] = "#";
+    if (saveInputEmpty != "") {
+        while((pos = str.find(saveInputEmpty, pos)) != string::npos) {
+            str.replace(pos, saveInputEmpty.length(), "#");
+        }
+    }
+    return str;
+}
+
 Rule* parseRule(string str) {
     Rule* rule = new Rule;
     string param = parametrs["NtermStart"];
@@ -378,7 +398,8 @@ Rule* parseRule(string str) {
     }
     // здесь начинаем парсить правую часть правила
     struct Tree * rightPart = new struct Tree;
-    string str_upd = removeNtermTermBrackets(str.substr(i));
+    string str_upd = magicReplaceEmpty(str.substr(i));
+    str_upd = removeNtermTermBrackets(str_upd);
     rightPart = parseAlt(str_upd);
     rule->right = rightPart;
     return rule;
@@ -495,7 +516,8 @@ string ConvertertoCFG_1(string leftpart,struct Tree* p,int flag){
         str=parametrsCFG["NtermStart"]+p->str+parametrsCFG["NtermEnd"];
     }
     else if (p->num==7){
-        str=parametrsCFG["Empty"];
+        // str=parametrsCFG["Empty"];
+        str=saveInputEmpty;
     }
     else if ((p->num==3)&&(!flag)){
         string newneterm=GeneratorNewNeterm();
@@ -614,7 +636,7 @@ void PrintAnswer(int n){
 
 void inputSyntax_2(int n){
     string testName = "tests\\test" + to_string(n) + "\\CFGsyntax.txt";
-    cout << testName << endl;
+    // cout << testName << endl;
     ifstream file(testName);
     if (file.is_open()) {
         string str;
@@ -651,13 +673,6 @@ int main() {
         cout << mypair.first << " = " << mypair.second << endl;
     } 
 
-    // добавляем параметры для КС 
-    //inputCFGsyntax(n);
-    // cout << ">> CFG PARAMETRS <<" << endl;
-    // for (auto mypair: parametrsCFG) {  
-    //     cout << mypair.first << " = " << mypair.second << endl;    
-    // } 
-
     // парсим грамматику
     // если в грамматике не использованы значения по умолчанию (а параметры не были заполнены), 
     // то говорим об ошибке err
@@ -674,7 +689,7 @@ int main() {
     for (auto mypair: parametrsCFG) {  
         cout << mypair.first << " = " << mypair.second << endl;
     } 
-    cout << ">> PARSED GRAMMAR <<" << endl;
+    cout << "\n>> PARSED GRAMMAR <<" << endl;
     printGrammar();
     cout<<"\n\n";
     ConvertertoCFG();

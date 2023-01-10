@@ -1,4 +1,5 @@
 Delim= 
 Arrow= :=
-NtermStart= <
-NtermEnd= >
+NtermStart= SS
+NtermEnd= SS
+Empty= $

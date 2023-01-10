@@ -1,0 +1,7 @@
+Delim= 
+Arrow= ::=
+NtermStart= !
+NtermEnd= !
+TermStart= <
+TermEnd= >
+Empty= eps
