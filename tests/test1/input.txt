@@ -1,2 +1,2 @@
-<S> := [a {<T>}] | b | # 
-<T> := c | #
+SSKSS := [a {SSSSS}] | $ | b 
+SSSSS := c | $
