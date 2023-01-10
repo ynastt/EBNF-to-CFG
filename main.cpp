@@ -516,8 +516,7 @@ string ConvertertoCFG_1(string leftpart,struct Tree* p,int flag){
         str=parametrsCFG["NtermStart"]+p->str+parametrsCFG["NtermEnd"];
     }
     else if (p->num==7){
-        // str=parametrsCFG["Empty"];
-        str=saveInputEmpty;
+        str=parametrsCFG["Empty"];
     }
     else if ((p->num==3)&&(!flag)){
         string newneterm=GeneratorNewNeterm();
@@ -659,8 +658,6 @@ void inputSyntax_2(int n){
         cout << "\nfile 'CFGsyntax.txt' does not exist. All parametrs are default" << endl;
     }
 }
-
-
 
 int main() {
     int n;
